@@ -1,8 +1,11 @@
 package main
 
-import {
+import (
+    "bufio"
+    "fmt"
+
     "github.com/raff/readliner"
-}
+)
 
 func main() {
 	rl := readliner.New("> ", "")

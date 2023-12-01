@@ -2,17 +2,19 @@ package readliner
 
 import (
 	"os"
+	"strings"
 
 	"github.com/peterh/liner"
 )
 
 type ReadLiner struct {
-	liner   *liner.State
-	history string
-	prompt  string
-	eol     string
-	buf     []byte
-	err     error
+	liner       *liner.State
+	completions []string
+	history     string
+	prompt      string
+	eol         string
+	buf         []byte
+	err         error
 }
 
 func New(prompt, history string) *ReadLiner {
@@ -31,6 +33,31 @@ func New(prompt, history string) *ReadLiner {
 
 func (r *ReadLiner) SetPrompt(prompt string) {
 	r.prompt = prompt
+}
+
+func (r *ReadLiner) SetCompletions(completions []string, begin bool) {
+	r.completions = completions
+
+	if completions != nil {
+		r.liner.SetCompleter(func(line string) (c []string) {
+			prefix := ""
+
+			if !begin {
+				if i := strings.LastIndexAny(line, " \t'!@#$%^&*()-_=+[]{:\";'}|\\,./<>"); i > 0 {
+					prefix = line[:i+1]
+					line = line[i+1:]
+				}
+			}
+			for _, n := range r.completions {
+				if strings.HasPrefix(n, strings.ToLower(line)) {
+					c = append(c, prefix+n)
+				}
+			}
+			return
+		})
+	} else {
+		r.liner.SetCompleter(nil)
+	}
 }
 
 func (r *ReadLiner) SetEol(eol string) {

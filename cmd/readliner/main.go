@@ -1,15 +1,28 @@
 package main
 
 import (
-    "bufio"
-    "fmt"
+	"bufio"
+	"fmt"
 
-    "github.com/raff/readliner"
+	"github.com/raff/readliner"
 )
 
 func main() {
 	rl := readliner.New("> ", "")
 	defer rl.Close()
+
+	rl.SetCompletions([]string{
+		"hello",
+		"help",
+		"anywhere",
+		"who",
+		"whatever",
+		"goodbye",
+		"there",
+		"here",
+		"another",
+		"any",
+	}, false)
 
 	scanner := bufio.NewScanner(rl)
 

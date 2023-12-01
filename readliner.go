@@ -43,7 +43,7 @@ func (r *ReadLiner) SetCompletions(completions []string, begin bool) {
 			prefix := ""
 
 			if !begin {
-				if i := strings.LastIndexAny(line, " \t'!@#$%^&*()-_=+[]{:\";'}|\\,./<>"); i > 0 {
+				if i := strings.LastIndexAny(line, " \t'!@#$%^&*()-_=+[]{:\";'}|\\,./<>"); i >= 0 {
 					prefix = line[:i+1]
 					line = line[i+1:]
 				}

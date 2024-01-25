@@ -94,7 +94,7 @@ func (r *ReadLiner) Read(b []byte) (int, error) {
 		}
 
 		r.liner.AppendHistory(line)
-		r.buf = []byte(line + "\n\n")
+		r.buf = []byte(line + r.eol)
 	}
 
 	n := 0

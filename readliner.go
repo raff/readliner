@@ -19,12 +19,14 @@ type ReadLiner struct {
 	err         error
 }
 
+const DefaultEOL = "\r\n"
+
 // New creates a new ReadLiner and sets the tty in raw mode.
 //
 // `prompt` is printed before reading from each line.
 // `history` should be the path to the history file.
 func New(prompt, history string) *ReadLiner {
-	rl := &ReadLiner{liner: liner.NewLiner(), history: history, prompt: prompt, eol: "\n"}
+	rl := &ReadLiner{liner: liner.NewLiner(), history: history, prompt: prompt, eol: DefaultEOL}
 	rl.liner.SetCtrlCAborts(true)
 
 	if history != "" {

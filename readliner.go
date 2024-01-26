@@ -13,7 +13,8 @@ type ReadLiner struct {
 	liner       *liner.State
 	completions []string
 	history     string
-	prompt      string
+	prompt      map[bool]string
+	first       bool
 	eol         string
 	buf         []byte
 	err         error
@@ -26,7 +27,13 @@ const DefaultEOL = "\r\n"
 // `prompt` is printed before reading from each line.
 // `history` should be the path to the history file.
 func New(prompt, history string) *ReadLiner {
-	rl := &ReadLiner{liner: liner.NewLiner(), history: history, prompt: prompt, eol: DefaultEOL}
+	rl := &ReadLiner{
+		liner:   liner.NewLiner(),
+		history: history,
+		prompt:  map[bool]string{true: prompt, false: prompt},
+		first:   true,
+		eol:     DefaultEOL,
+	}
 	rl.liner.SetCtrlCAborts(true)
 
 	if history != "" {
@@ -41,7 +48,22 @@ func New(prompt, history string) *ReadLiner {
 
 // SetPrompt changes the `prompt` for the ReadLiner
 func (r *ReadLiner) SetPrompt(prompt string) {
-	r.prompt = prompt
+	r.prompt[true] = prompt
+}
+
+// SetContPrompt changes the continuation `prompt` for the ReadLiner
+//
+// This is used to support multiline. See description of `Newline`.
+func (r *ReadLiner) SetContPrompt(prompt string) {
+	r.prompt[false] = prompt
+}
+
+// Newline indicate we are starting a new line (in multiline mode).
+//
+// This reset the prompt to the "new line" prompt. The prompt switch to the "continuation" prompt after
+// reading the current line.
+func (r *ReadLiner) Newline() {
+	r.first = true
 }
 
 // SetCompletions sets a `completer` with a list of completions words.
@@ -103,7 +125,7 @@ func (r *ReadLiner) Read(b []byte) (int, error) {
 	l := len(r.buf)
 
 	if l == 0 {
-		line, err := r.liner.Prompt(r.prompt)
+		line, err := r.liner.Prompt(r.prompt[r.first])
 		if err != nil {
 			r.err = err
 			return 0, err
@@ -111,6 +133,7 @@ func (r *ReadLiner) Read(b []byte) (int, error) {
 
 		r.liner.AppendHistory(line)
 		r.buf = []byte(line + r.eol)
+		r.first = false
 	}
 
 	n := 0

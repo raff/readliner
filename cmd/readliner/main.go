@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	rl := readliner.New("> ", "")
+	rl := readliner.New("> ", ".rl_history")
 	defer rl.Close()
 
 	rl.SetCompletions([]string{

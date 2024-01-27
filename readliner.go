@@ -15,6 +15,7 @@ type ReadLiner struct {
 	history     string
 	prompt      map[bool]string
 	first       bool
+	terminal    bool
 	eol         string
 	buf         []byte
 	err         error
@@ -28,18 +29,21 @@ const DefaultEOL = "\r\n"
 // `history` should be the path to the history file.
 func New(prompt, history string) *ReadLiner {
 	rl := &ReadLiner{
-		liner:   liner.NewLiner(),
-		history: history,
-		prompt:  map[bool]string{true: prompt, false: prompt},
-		first:   true,
-		eol:     DefaultEOL,
+		liner:  liner.NewLiner(),
+		prompt: map[bool]string{true: prompt, false: prompt},
+		first:  true,
+		eol:    DefaultEOL,
 	}
 	rl.liner.SetCtrlCAborts(true)
+	if _, err := liner.TerminalMode(); err == nil {
+		rl.terminal = true
+		rl.history = history
 
-	if history != "" {
-		if f, err := os.Open(history); err == nil {
-			defer f.Close()
-			rl.liner.ReadHistory(f)
+		if history != "" {
+			if f, err := os.Open(history); err == nil {
+				defer f.Close()
+				rl.liner.ReadHistory(f)
+			}
 		}
 	}
 
@@ -97,6 +101,13 @@ func (r *ReadLiner) SetCompletions(completions []string, begin bool) {
 
 func (r *ReadLiner) SetEol(eol string) {
 	r.eol = eol
+}
+
+// IsTerminal returns true if ReadLiner is operating on a terminal that supports editing (i.e. not redirected from a file)
+//
+// Note that when not in terminal mode, history is disabled.
+func (r *ReadLiner) IsTerminal() bool {
+	return r.terminal
 }
 
 // Close closes the ReadLiner and reset the TTY. If there is an history file, the current history
